@@ -1,0 +1,255 @@
+---
+output:
+  pdf_document:
+    toc: false
+    includes:
+       in_header: codecheck-preamble.sty
+    latex_engine: xelatex
+---
+
+```{r rsetup,eval=TRUE,include=FALSE}
+require("codecheck")
+require("knitr")
+require("rprojroot")
+require("yaml")
+require("xtable")
+require("tibble")
+require("readr")
+options(width = 60)
+opts_chunk$set(cache=FALSE)
+
+root = find_root("codecheck.yml")
+```
+
+```{r codecheck_logo, echo=FALSE,results='asis'}
+latex_codecheck_logo()
+```
+
+```{r manifest, eval=TRUE, include=FALSE}
+metadata = codecheck_metadata(root)
+manifest = metadata$manifest
+
+dest_dir = file.path(root, "codecheck", "outputs")
+## Create the outputs directory if missing
+if ( !dir.exists(dest_dir) ) {
+  dir.create(dest_dir, recursive = TRUE)
+}
+
+manifest_df = copy_manifest_files(root, metadata,
+                                  dest_dir, keep_full_path = FALSE,
+                                  overwrite = FALSE
+                                  )
+```
+
+---
+title: `r paste("CODECHECK certificate", metadata$certificate)`
+subtitle: `r codecheck:::as_latex_url(metadata$report)`
+---
+
+```{r summary_metadata, echo=FALSE, results='asis'}
+latex_summary_of_metadata(metadata)
+```
+
+```{r summary_manifest, echo=FALSE, results='asis'}
+latex_summary_of_manifest(metadata, manifest_df, root)
+```
+
+# Summary
+
+The article referenced data and code in a OSF project. 
+An included computational notebook in R Markdown format could be executed without errors and Figure 1, Figure 2, Figure 3, and Table 2 as well as numerical statics could be recreated with the code in the notebook.
+The data deposit contains further files matching other tables in the article, though these are likely, at least partially, manually created and out of scope.
+The check was successful.
+
+\clearpage
+
+# CODECHECKER notes
+
+```{r git_sha, echo=FALSE}
+gitInfo <- ""
+if(git2r::in_repository(root)) {
+  gitInfo <- paste0("This check is based on the commit `", git2r::last_commit()$sha, "`.")
+}
+```
+
+This check is based on a submission to the [Lifecycle Journal](https://lifecyclejournal.org/).
+Basis for evaluation is the registration of the code and data repository linked from the article page at <https://doi.org/10.17605/OSF.IO/BMQCW> (the registration of the project linked in the article).
+The used article was published in the Lifecycle Journal Apr 29, 2025 with "Version 1 | Status: Under Evaluation".
+The **materials** of the article include data and code, both are published on OSF in the project <https://osf.io/jwcmu/>.
+This check starts with the article in PDF form and the archive `data and code.zip` (<https://osf.io/pexfb>, from the registration).
+
+The article does point to the OSF project several times, but there are no details or instructions.
+The archive contains a `README.md` file, which however only includes the abstract and the license (CC-BY 4.0).
+The archive contains three folders with several subfolders.
+Here is the full file tree:
+
+\footnotesize
+
+```{r filetree, echo=FALSE}
+fs::dir_tree("../data and code/", regexp = "*__MACOSX/*", invert = TRUE)
+```
+
+\normalsize
+
+I did a manual matching of the files in the archive and the figures in the article due to a lack of documentation.
+
+\footnotesize
+
+| Article | File             | Visual/manual inspection, comment |
+|:---|:---------------------|:------------|
+| Figure 1 | `-`  | no corresponding file, but computational notebook section "Sensitivity analysis: Exclude Tjak et al. (2018)" creates a matching the figure |
+| Table 1 | `data and code/data/processed/summary_statistics_comparisons.xlsx` | the same, though spreadsheet has extra highlights |
+| Figure 2 | `data and code/communciations/plots/verification_zhao_2023_comparisons_plot.pdf/png` | the same |
+| Table 2 | `data and code/data/raw/data_zhao_forest_plot_1_extracted.xlsx` | matches a combination of sheets "original" and "reextracted" |
+| Table 3 | `-` | no corresponding file, matches the table in notebook section "Outlier/undue influence tests" |
+| Figure 3 | `data and code/communciations/plots/new_meta.png` | also matches notebook section "Sensitivity analysis: Exclude Zemestani et al. (2020)", it is unclear why this is not also saved as a plot in the notebook |
+| `-` | `data and code/data/processed/influence_recalculated.xlsx` | no matching table found |
+| `-` | `data and code/data/processed/influence_zhao.xlsx` | no matching table found, but matches table generated in notebook section "Outlier/undue influence tests" |
+| `-` | `data and code/communciations/plots/verification_zhao_2023_comparisons_plot_alt.pdf/png` | mo matching figure found |
+
+\normalsize
+
+I add the matching files to the manifest for this check (see `codecheck.yml`).
+Next, I check out the computational notebook in `data and code/code/analysis/`, which is an R Markdown file, `verification_zhao_2023.Rmd` that is also provided in a rendered output file, `verification_zhao_2023.html`.
+Based on the provided information, I expand the table above.
+
+I continue with the `.Rmd` file, beginning with installing missing packages, which could be installed without any errors.
+Here is the output of my `sessionInfo()` after successfully rendering the computational notebook using RStudio's "Knit"-button without any errors within a few moments on my laptop:
+
+\tiny
+
+```txt
+R version 4.5.0 (2025-04-11)
+Platform: x86_64-pc-linux-gnu
+Running under: Ubuntu 22.04.5 LTS
+
+Matrix products: default
+BLAS:   /usr/lib/x86_64-linux-gnu/blas/libblas.so.3.10.0 
+LAPACK: /usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.10.0  LAPACK version 3.10.0
+
+locale:
+ [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C               LC_TIME=de_DE.UTF-8        LC_COLLATE=en_US.UTF-8     LC_MONETARY=de_DE.UTF-8    LC_MESSAGES=en_US.UTF-8    LC_PAPER=de_DE.UTF-8      
+ [8] LC_NAME=C                  LC_ADDRESS=C               LC_TELEPHONE=C             LC_MEASUREMENT=de_DE.UTF-8 LC_IDENTIFICATION=C       
+
+time zone: Europe/Berlin
+tzcode source: system (glibc)
+
+attached base packages:
+[1] stats     graphics  grDevices datasets  utils     methods   base     
+
+other attached packages:
+ [1] lubridate_1.9.4  forcats_1.0.0    stringr_1.5.1    dplyr_1.1.4      purrr_1.0.4      tidyr_1.3.1      ggplot2_3.5.2    tidyverse_2.0.0  readr_2.1.5      tibble_3.2.1     xtable_1.8-4    
+[12] yaml_2.3.10      rprojroot_2.0.4  knitr_1.50       codecheck_0.14.0 parsedate_1.3.2  R.cache_0.16.0   gh_1.4.1        
+
+loaded via a namespace (and not attached):
+ [1] tidyselect_1.2.1  R.utils_2.13.0    fastmap_1.2.0     XML_3.99-0.18     digest_0.6.37     timechange_0.3.0  lifecycle_1.0.4   qpdf_1.3.5        magrittr_2.0.3    zen4R_0.10        compiler_4.5.0   
+[12] rlang_1.1.6       sass_0.4.10       tools_4.5.0       utf8_1.2.4        fauxpas_0.5.2     askpass_1.2.1     bit_4.6.0         curl_6.2.2        plyr_1.8.9        xml2_1.3.8        pkgload_1.4.0    
+[23] redland_1.0.17-18 httpcode_0.3.0    withr_3.0.2       rdflib_0.2.9      R.oo_1.27.0       grid_4.5.0        roxygen2_7.3.2    atom4R_0.3-3      rorcid_0.7.0      colorspace_2.1-1  scales_1.3.0     
+[34] crul_1.5.0        cli_3.6.5         rmarkdown_2.29    crayon_1.5.3      generics_0.1.3    rstudioapi_0.17.1 httr_1.4.7        tzdb_0.5.0        dadjokeapi_1.0.2  cachem_1.1.0      assertthat_0.2.1 
+[45] parallel_4.5.0    vctrs_0.6.5       jsonlite_2.0.0    hms_1.1.3         bit64_4.6.0-1     jquerylib_0.1.4   keyring_1.3.2     glue_1.8.0        stringi_1.8.7     gtable_0.3.6      munsell_0.5.1    
+[56] bspm_0.5.7        pillar_1.10.2     htmltools_0.5.8.1 R6_2.6.1          vroom_1.6.5       evaluate_1.0.3    osfr_0.2.9        R.methodsS3_1.8.2 png_0.1-8         memoise_2.0.1     bslib_0.9.0      
+[67] Rcpp_1.0.14       zip_2.3.2         whisker_0.4.1     xfun_0.52         fs_1.6.6          pdftools_3.5.0    pkgconfig_2.0.3  
+```
+
+\normalsize
+
+Further statistics calculated in the computational notebook match statistical numbers in the article, though a precise check is out of scope for this evaluation due to missing documentation.
+
+## Recommendations
+
+I suggest to the authors to consider the following suggestions for their next publication or workflow:
+
+- Use appropriate data and software licenses - CC-BY is not ideal for either.
+- Use precise file names in your data export and expand README to make clear which file corresponds to which figure; all files should be saved through a code statement (not done for `new_meta.png`).
+- Provide documentation or even snapshot of the used packages (`sessionInfo()`, `renv` project, ..).
+- Very clearly mention in the article where in the computational notebook statistics are calculated.
+- Reference the registration in your article, ideally as a proper citation.
+
+\clearpage
+
+# Manifest files
+
+```{r manifest-files, echo=FALSE, results="asis", width=100}
+for(i in c(1:nrow(manifest_df))) {
+  path <- manifest_df[i,"dest"]
+  if(stringr::str_ends(path, "(png|pdf|jpg|jpeg)")) {
+    # include graphics with knitr has to happen at top level in chunks, see https://github.com/yihui/knitr/issues/1260
+    # see also https://stackoverflow.com/questions/51268623/insert-images-using-knitrinclude-graphics-in-a-for-loop
+    # knitr::include_graphics(manifest_df[1, "dest"], error = TRUE)
+    # Therefore, generate Markdown code here:
+    cat("## ", basename(path), "\n\n")
+    cat("**Comment:** ", manifest_df[i,"comment"], "\n\n")
+    cat(paste0("![", "Test ", "](", path, ")\n"))
+  } else if (stringr::str_ends(path, "(Rout|txt)")) {
+    cat("## ", basename(path), "\n\n")
+    cat("\\scriptsize \n\n", "```txt\n")
+    cat(readLines(path), sep = "\n")
+    cat("\n\n``` \n\n", "\\normalsize \n\n")
+  } else if (stringr::str_ends(path, "csv")) {
+    cat("## ", basename(path), "\n\n", "Summary statistics of tabular data:", "\n\n")
+    cat("\\scriptsize \n\n", "```txt\n")
+    print(skimr::skim(read.csv(path)))
+    cat("\n\n``` \n\n", "\\normalsize \n\n")
+  } else if (stringr::str_ends(path, "(xls|xlsx)")) {
+    cat("## ", basename(path), "\n\n", "Partial content of tabular data:", "\n\n")
+    cat("\\scriptsize \n\n", "```txt\n")
+    print(readxl::read_excel(path))
+    cat("\n\n``` \n\n", "\\normalsize \n\n")
+  } else if (stringr::str_ends(path, "(htm|html)")) {
+    if(Sys.which("wkhtmltopdf") != "") {
+      cat("## ", basename(path), "\n\n", "Content of HTML file (starts on next page):", "\n\n")
+      out_file <- paste0(path, ".pdf")
+      system2("wkhtmltopdf", c(shQuote(path), shQuote(out_file)))
+      cat(paste0("\\includepdf[pages={-}]{", out_file, "}"))
+      cat("\n\n End of ", basename(path), "on previous page.", "\n\n")
+    } else {
+      cat("## ", basename(path), "\n\n")
+      cat("Cannot inlcude output file as figure.")
+    }
+  } else {
+    cat("## ", basename(path), "\n\n")
+    cat("Cannot inlcude output file as figure.")
+  }
+  
+  cat("\\clearpage \n\n")
+}
+```
+
+<!--
+## Acknowledgements
+
+I would like to thank Dr Bhatt and his team for promptly answering any
+queries I had with this reproduction.  CODECHECK is financially
+supported by the Mozilla foundation.
+-->
+
+# Citing this document
+
+```{r, results='asis',echo=FALSE}
+cite_certificate(metadata)
+```
+
+# About CODECHECK
+
+This certificate confirms that the codechecker could independently
+reproduce the results of a computational analysis given the data and
+code from a third party.  A CODECHECK does not check whether the
+original computation analysis is correct.  However, as all materials
+required for the reproduction are freely available by following the
+links in this document, the reader can then study for themselves the
+code and data.
+
+
+# About this document
+
+This document was created using [R Markdown](https://rmarkdown.rstudio.com/) using the [`codecheck`](https://github.com/codecheckers/codecheck) R package.
+`make codecheck.pdf` will regenerate the report file.
+
+```{r}
+sessionInfo()
+```
+
+```{r, include=FALSE, eval=FALSE}
+# render this document in RStudio
+rmarkdown::render("codecheck.Rmd", output_format = "pdf_document") 
+```
