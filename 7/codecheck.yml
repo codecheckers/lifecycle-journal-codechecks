@@ -26,7 +26,7 @@ summary: >
   An included computational notebook in R Markdown format could be executed without errors and Figure 1, Figure 2, Figure 3, and Table 2 as well as numerical statics could be recreated with the code in the notebook.
   The data deposit contains further files matching other tables in the article, though these are likely, at least partially, manually created and out of scope.
   The check was successful.
-repository: https://github.com/codecheckers/lifecycle-journal-codechecks
+repository: https://github.com/codecheckers/lifecycle-journal-codechecks/tree/main/7
 check_time: "2025-05-15 12:00:00"
 certificate: 2025-005
 report: https://doi.org/10.5281/zenodo.15323262
