@@ -77,6 +77,7 @@ Basis for evaluation is the registration of the code and data repository linked 
 The used article was published in the Lifecycle Journal Apr 29, 2025 with "Version 1 | Status: Under Evaluation".
 The **materials** of the article include data and code, both are published on OSF in the project <https://osf.io/jwcmu/>.
 This check starts with the article in PDF form and the archive `data and code.zip` (<https://osf.io/pexfb>, from the registration).
+The source of this report is published at <https://github.com/codecheckers/lifecycle-journal-codechecks/tree/main/7>.
 
 The article does point to the OSF project several times, but there are no details or instructions.
 The archive contains a `README.md` file, which however only includes the abstract and the license (CC-BY 4.0).
